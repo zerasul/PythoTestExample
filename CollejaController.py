@@ -28,7 +28,8 @@ class collejaController:
         return int(num)
     
     def write_Counter(self,data):
-        os.remove(self.PATH)
+        if os.path.exists(self.PATH):
+            os.remove(self.PATH)
         with open(self.PATH,'w') as f:
             f.write(str(data))
             
