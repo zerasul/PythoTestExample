@@ -49,4 +49,4 @@ def index():
     else:
         return collejaHandler.do_POST()
 
-app.run(port=7077)
+app.run(host='0.0.0.0',port=7077)
