@@ -6,34 +6,25 @@ Created on Tue Apr 11 18:51:32 2017
 @author: victor
 """
 
-
-
-from http.server import BaseHTTPRequestHandler
-import socketserver
+from flask import Flask, request
 import CollejaController
 import json
 
-class CollejasHTTPHandler(BaseHTTPRequestHandler):
+
+
+class CollejasHTTPHandler():
     
     ccontroller=None
     
     def setup(self):
         self.ccontroller=CollejaController.collejaController()
         
-    def send_simple_resp(self,response, responseCode=200):
-        self.send_response_only(responseCode,json.dump(response))
-        
-    def send_Response(self, response, responseCode=200, responseHeader='Content-type', responseType='text/html'):
-        self.send_response(responseCode)
-        self.send_header(responseHeader,responseType)
-        self.end_headers()
-        self.wfile.write(json.dump(response))
     
     def do_GET(self):
         dictionary ={}
         
-        dictionary['count']=self.ccontroller.read_Counter()
-        super.send_simple_resp(dictionary)
+        count=self.ccontroller.read_Counter()
+        return json.dumps({'count':count},sort_keys=True)
         
     def do_POST(self):
         counter = self.ccontroller.read_Counter()
@@ -41,13 +32,21 @@ class CollejasHTTPHandler(BaseHTTPRequestHandler):
         self.ccontroller.write_Counter(data=counter)
         dictionary ={}
         dictionary['result']='OK'
-        self.send_simple_resp(dictionary)
+        return json.dump(dictionary)
         
         
 pass
 
+app= Flask(__name__)
 
-PORT_NUMBER=7077
-with socketserver.TCPServer(("", PORT_NUMBER), CollejasHTTPHandler) as httpd:
-    print("serving at port", PORT_NUMBER)
-    httpd.serve_forever()
+@app.route('/', methods=['GET','POST'])
+def index():
+    collejaHandler = CollejasHTTPHandler()
+    collejaHandler.setup()
+    
+    if request.method == 'GET':
+        return collejaHandler.do_GET()
+    else:
+        return collejaHandler.do_POST()
+
+app.run(port=7077)
